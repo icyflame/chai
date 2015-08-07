@@ -5,6 +5,7 @@ import sys
 import copy
 import os
 import inspect
+import time
 
 # hack to include grequests from http://stackoverflow.com/a/6098238/1448759
 cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"grequests")))
@@ -14,6 +15,17 @@ import grequests
 
 session = grequests.Session()
 session.mount('http://', requests.adapters.HTTPAdapter(max_retries=10))
+
+def printMaintenanceMessage():
+
+    hours = int(time.strftime('%H'))
+    minutes = int(time.strftime('%M'))
+
+    if hours == 0 and minutes >= 0 and minutes <= 30:
+        # Updated on 7th August, 2015, this time period has remained unchanged
+        # for about two years.
+        print 'Indian Railways API is UNAVAILABLE between 00:00 and 00:30 hrs.'
+        print 'Please try after 00:30 hrs.'
 
 def scrape_avail(html):
     soup = bs(html)
@@ -88,6 +100,7 @@ def get_avail(train_no, src, dst, day, month, class_, quota, offset = 0):
         return scrape_avail(r.text)
     except IndexError:
         print "Error: Couldn't get availability. Aborting."
+        printMaintenanceMessage()
         sys.exit(1)
 
 def correct_date(day, month, offset):
@@ -120,6 +133,7 @@ def get_stations(train_no):
         return scrape_stations_list(r.text)
     except IndexError:
         print "Error: Couldn't get stations list. Aborting."
+        printMaintenanceMessage()
         sys.exit(1)
 
 def print_progress(p, prompt='', text=''):
